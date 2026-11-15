@@ -1,4 +1,5 @@
 // Fixture-mode E2E: recorded official API payloads, real Python service, real browser.
+import { readFile } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
 import { card, clearStorage, counts, fillProfile, openApp, saveProfileAs } from "./helpers.mjs";
 
@@ -244,4 +245,38 @@ test("익명 의견을 제출하면 응답 요약이 갱신된다", async ({ pag
   await expect(page.getByTestId("feedback-message")).toContainText("저장했습니다");
   await expect(page.getByTestId("feedback-summary")).toContainText("응답 수");
   await expect(page.getByTestId("feedback-summary")).toContainText("4 / 5");
+});
+
+test("프로필을 JSON Resume 이력서로 내보내고 이름·이메일은 저장하지 않는다", async ({ page }) => {
+  await openApp(page);
+  await fillProfile(page, SEOUL_TECH_IE);
+  await saveProfileAs(page, "나 · 산업공학과");
+
+  await expect(page.getByTestId("resume-panel")).toBeVisible();
+  const source = page.getByTestId("resume-source");
+  await expect(source.locator("option")).toHaveText(["현재 입력", "나 · 산업공학과"]);
+  const preview = page.getByTestId("resume-preview");
+  await expect(preview).toContainText("서울과학기술대학교");
+  await expect(preview).toContainText("산업공학");
+  await expect(page.getByTestId("resume-message")).toContainText("이름");
+
+  await page.getByTestId("resume-name").fill("홍길동");
+  await page.getByTestId("resume-email").fill("gildong@example.com");
+  await expect(preview).toContainText("홍길동");
+  await expect(page.getByTestId("resume-message")).not.toContainText("이메일");
+
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("resume-download").click()]);
+  expect(download.suggestedFilename()).toBe("contestfit-resume-홍길동.json");
+  const resume = JSON.parse(await readFile(await download.path(), "utf8"));
+  expect(resume.basics).toMatchObject({ name: "홍길동", email: "gildong@example.com", location: { countryCode: "KR", region: "서울" } });
+  expect(resume.education).toHaveLength(1);
+  expect(resume.education[0].institution).toBe("서울과학기술대학교");
+  expect(resume.education[0].area).toContain("산업공학");
+  // 공고 자격 판정용 정보는 이력서로 나가지 않는다.
+  expect(Object.keys(resume.basics)).not.toContain("age");
+  expect(JSON.stringify(resume)).not.toMatch(/nationality|대한민국|businessStatus|entryType/);
+
+  const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }));
+  expect(stored).not.toContain("gildong@example.com");
+  expect(stored).not.toContain("홍길동");
 });

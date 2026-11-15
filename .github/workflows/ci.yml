@@ -41,7 +41,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Run decision engine tests
-        run: node --test tests/web/decision-engine.test.mjs
+        run: node --test tests/web/decision-engine.test.mjs tests/web/resume-export.test.mjs
 
       - name: Check Python syntax
         run: python -m compileall -q src tests api

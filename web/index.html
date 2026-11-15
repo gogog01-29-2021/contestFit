@@ -139,6 +139,25 @@
         <p id="profile-message" role="status" aria-live="polite"></p>
       </section>
       <div id="profile-compare" data-testid="profile-compare"></div>
+
+      <section class="tool-panel resume-panel" aria-labelledby="resume-title" data-testid="resume-panel">
+        <span class="eyebrow">RESUME</span>
+        <h3 id="resume-title">이력서 초안으로 내보내기</h3>
+        <p>입력한 학교·전공·신분·역량·관심 분야·거주 지역을 이력서 초안으로 바꿉니다. 나이·국적·사업자 정보는 넣지 않습니다. 이름과 이메일은 여기서만 쓰이며 저장하거나 서버로 보내지 않습니다.</p>
+        <form id="resume-form" class="resume-form" autocomplete="off">
+          <label>기준 프로필<select name="source" id="resume-source" data-testid="resume-source"></select></label>
+          <label>이름<input name="name" maxlength="40" placeholder="예: 홍길동" data-testid="resume-name"></label>
+          <label>이메일<input name="email" type="email" maxlength="80" placeholder="예: name@example.com" data-testid="resume-email"></label>
+          <label>한 줄 소개<input name="summary" maxlength="120" placeholder="예: 데이터로 문제를 푸는 산업공학 전공 학생" data-testid="resume-summary"></label>
+        </form>
+        <div class="button-row">
+          <button type="button" id="resume-download" data-testid="resume-download">JSON Resume 저장 (.json)</button>
+          <button type="button" class="secondary-button" id="resume-print" data-testid="resume-print">인쇄 · PDF로 저장</button>
+        </div>
+        <p id="resume-message" role="status" aria-live="polite" data-testid="resume-message"></p>
+        <p class="muted">저장한 .json 파일은 <a href="https://github.com/reactive-resume/reactive-resume" target="_blank" rel="noopener">Reactive Resume</a> 등 JSON Resume을 지원하는 도구에서 불러올 수 있습니다. 경력·프로젝트·수상 이력은 불러온 뒤 그 도구에서 추가하세요.</p>
+        <article id="resume-preview" class="resume-preview" data-testid="resume-preview" aria-label="이력서 미리보기"></article>
+      </section>
     </section>
 
     <!-- 의견 -->

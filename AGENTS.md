@@ -41,10 +41,11 @@
 
 ```text
 PYTHONPATH=src python -m unittest discover -s tests -v
-node --test tests/web/decision-engine.test.mjs
+node --test tests/web/decision-engine.test.mjs tests/web/resume-export.test.mjs
 python -m compileall -q src tests
 node --check web/decision-engine.mjs
 node --check web/config.mjs
+node --check web/resume-export.mjs
 node --check web/app.mjs
 npx playwright test   # fixture E2E
 ```

@@ -1,6 +1,7 @@
 import { judgeContest } from "./decision-engine.mjs";
 import { evaluateFit, titleTopics } from "./fit-engine.mjs";
 import { APP_CONFIG, EMPTY_PROFILE } from "./config.mjs";
+import { buildJsonResume, resumeFileName, resumeGaps } from "./resume-export.mjs";
 
 const labels = { eligible: "지원 가능", needs_review: "확인 필요", ineligible: "지원 불가" };
 const kindLabels = Object.fromEntries(APP_CONFIG.kindOptions.map((item) => [item.value, item.label]));
@@ -756,6 +757,7 @@ downloadPreview.addEventListener("click", () => {
 
 // ---------- profiles ----------
 function renderProfiles() {
+  renderResume();
   const target = $("#profile-compare");
   if (!state.savedProfiles.length) {
     target.innerHTML = '<div class="empty-state" data-testid="profiles-empty"><strong>저장한 프로필이 없습니다.</strong><span>탐색 화면에서 조건을 입력한 뒤 이름을 붙여 저장하세요.</span></div>';
@@ -808,6 +810,67 @@ $("#profile-compare").addEventListener("click", (event) => {
     renderProfiles();
   }
 });
+
+// ---------- resume export ----------
+// 이름·이메일·한 줄 소개는 폼에서만 읽고 저장하지 않는다. 변환 규칙은 resume-export.mjs에 있다.
+function resumeSource() {
+  const id = $("#resume-source").value;
+  const saved = id && id !== "current" ? state.savedProfiles.find((item) => item.id === id) : null;
+  return saved ? { ...EMPTY_PROFILE, ...saved.profile } : state.profile;
+}
+
+function resumeOptions() {
+  const fields = $("#resume-form").elements;
+  const emailInvalid = Boolean(fields.email.value) && !fields.email.checkValidity();
+  return { name: fields.name.value, email: emailInvalid ? "" : fields.email.value, summary: fields.summary.value, emailInvalid };
+}
+
+function resumeStatusText(resume, options) {
+  const gaps = resumeGaps(resume);
+  const notes = [];
+  if (options.emailInvalid) notes.push("이메일 형식이 올바르지 않아 넣지 않았습니다.");
+  if (gaps.length) notes.push(`아직 비어 있는 항목: ${gaps.join(", ")}`);
+  return notes.join(" ");
+}
+
+function resumePreviewHtml(resume) {
+  const basics = resume.basics || {};
+  const placeholder = (message) => `<span class="placeholder">${escapeHtml(message)}</span>`;
+  const contact = [basics.email, basics.location?.region].filter(Boolean).map(escapeHtml).join(" · ");
+  const sections = [];
+  if (resume.education?.length) {
+    sections.push(`<section><h5>학력</h5>${resume.education.map((item) => `<p><strong>${escapeHtml(item.institution || item.area)}</strong>${item.institution && item.area ? ` · ${escapeHtml(item.area)}` : ""}${item.studyType ? ` · ${escapeHtml(item.studyType)}` : ""}</p>`).join("")}</section>`);
+  }
+  if (resume.skills?.length) {
+    sections.push(`<section><h5>역량</h5><dl>${resume.skills.map((group) => `<div><dt>${escapeHtml(group.name)}</dt><dd>${group.keywords.map(escapeHtml).join(" · ")}</dd></div>`).join("")}</dl></section>`);
+  }
+  if (resume.interests?.length) {
+    sections.push(`<section><h5>관심 분야</h5><p>${resume.interests.flatMap((group) => group.keywords).map(escapeHtml).join(" · ")}</p></section>`);
+  }
+  return `<header><h4>${basics.name ? escapeHtml(basics.name) : placeholder("이름을 입력하세요")}</h4>${basics.label ? `<p class="resume-label">${escapeHtml(basics.label)}</p>` : ""}${contact ? `<p class="resume-contact">${contact}</p>` : ""}${basics.summary ? `<p>${escapeHtml(basics.summary)}</p>` : ""}</header>${sections.join("") || `<p>${placeholder("내 조건에서 학교·전공·역량을 입력하면 여기에 채워집니다.")}</p>`}`;
+}
+
+function renderResume() {
+  const select = $("#resume-source");
+  const previous = select.value || "current";
+  select.innerHTML = ['<option value="current">현재 입력</option>', ...state.savedProfiles.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`)].join("");
+  select.value = [...select.options].some((option) => option.value === previous) ? previous : "current";
+  const options = resumeOptions();
+  const resume = buildJsonResume(resumeSource(), options);
+  $("#resume-preview").innerHTML = resumePreviewHtml(resume);
+  $("#resume-message").textContent = resumeStatusText(resume, options);
+}
+
+$("#resume-form").addEventListener("input", renderResume);
+$("#resume-form").addEventListener("submit", (event) => event.preventDefault());
+$("#resume-download").addEventListener("click", () => {
+  const options = resumeOptions();
+  const resume = buildJsonResume(resumeSource(), options);
+  const filename = resumeFileName(options);
+  download(filename, `${JSON.stringify(resume, null, 2)}\n`, "application/json;charset=utf-8");
+  $("#resume-message").textContent = [`${filename} 을(를) 저장했습니다.`, resumeStatusText(resume, options)].filter(Boolean).join(" ");
+});
+$("#resume-print").addEventListener("click", () => window.print());
 
 // ---------- feedback ----------
 async function loadFeedbackSummary() {

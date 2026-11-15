@@ -375,3 +375,30 @@ footer p { margin: 8px 0 0; font-size: 12px; }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- 이력서 내보내기 ---------- */
+.resume-panel { margin-top: 24px; }
+.tool-panel .resume-form { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 14px; }
+.tool-panel .resume-form label:last-child { grid-column: 1 / -1; }
+.resume-preview { margin-top: 18px; padding: 32px 36px; border: 1px solid var(--line-strong); background: #fff; color: #141714; line-height: 1.6; }
+.resume-preview h4 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+.resume-preview h5 { margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 2px solid #141714; font-size: 13px; letter-spacing: .08em; }
+.resume-preview p { margin: 4px 0; font-size: 14px; }
+.resume-preview .resume-label { color: var(--blue); font-weight: 800; }
+.resume-preview .resume-contact { color: var(--ink-soft); font-size: 13px; }
+.resume-preview dl { display: grid; gap: 6px; margin: 0; }
+.resume-preview dl div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; font-size: 14px; }
+.resume-preview dt { font-weight: 800; }
+.resume-preview dd { margin: 0; }
+.resume-preview .placeholder { color: var(--ink-soft); font-style: italic; }
+@media (max-width: 640px) {
+  .tool-panel .resume-form { grid-template-columns: 1fr; }
+  .resume-preview { padding: 22px 18px; }
+  .resume-preview dl div { grid-template-columns: 1fr; gap: 2px; }
+}
+@media print {
+  body * { visibility: hidden; }
+  .resume-preview, .resume-preview * { visibility: visible; }
+  .resume-preview { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; border: 0; }
+  .resume-preview .placeholder { display: none; }
+}

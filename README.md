@@ -78,7 +78,7 @@ E2E와 공식 API 점검은 [배포 가이드](docs/deploy-setup.md#로컬-실�
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests -v
-node --test tests/web/decision-engine.test.mjs
+node --test tests/web/decision-engine.test.mjs tests/web/resume-export.test.mjs
 python -m compileall -q src tests
 node --check web/decision-engine.mjs
 node --check web/config.mjs
@@ -90,7 +90,7 @@ node --check web/app.mjs
 ```powershell
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
-node --test tests/web/decision-engine.test.mjs
+node --test tests/web/decision-engine.test.mjs tests/web/resume-export.test.mjs
 python -m compileall -q src tests
 node --check web/decision-engine.mjs
 node --check web/config.mjs
